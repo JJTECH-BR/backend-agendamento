@@ -4,6 +4,7 @@
   "description": " Sistema de Agendamento...",
   "main": "index.js",
   "scripts": {
+    "dev": "node --watch src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,10 +12,13 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^7.4.2",
-    "@prisma/config": "^7.4.2",
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "@prisma/config": "^7.5.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.20.0",
+    "prisma": "^7.5.0"
   }
 }
