@@ -1,27 +1,25 @@
-import { Router } from 'express'; // Puxamos só a ferramenta de rotas do Express
-import UserController from './controllers/userController.js'; // Importamos o nosso especialista
+import { Router } from 'express';
+import UserController from './controllers/userController.js';
 import CompanyController from './controllers/CompanyController.js';
-
-
+import SessionController from './controllers/sessionController.js'; // Importamos o controle de login
 
 const routes = new Router();
 
-// A nossa rota de teste de saúde do servidor
+// Rota de teste para ver se o servidor está on-line
 routes.get('/', (req, res) => {
     return res.json({ message: 'Servidor rodando perfeitamente!' });
 });
 
-// A ROTA DE CADASTRO: Olha como fica limpa! 
-// Quando bater um POST no /users, ele chama a função 'create' do UserController
-routes.post('/users', UserController.create);
+// ROTA DE LOGIN: É por aqui que o usuário recebe o seu "crachá" (Token)
+// A Juliana vai usar essa rota no Front-end
+routes.post('/sessions', SessionController.create);
 
+// Rotas de Usuário
+routes.post('/users', UserController.create);
 routes.get('/users', UserController.index);
 
-// Rota para criar a empresa (Onde você vai gerar o ID oficial)
+// Rotas de Empresa
 routes.post('/companies', CompanyController.store);
-
-// Rota para listar as empresas (Para você consultar o ID depois)
 routes.get('/companies', CompanyController.index);
 
-// Exportamos o mapa de rotas
 export default routes;
