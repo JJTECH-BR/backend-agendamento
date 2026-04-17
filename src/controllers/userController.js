@@ -1,13 +1,5 @@
 import bcryptjs from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
-import pg from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-
-// A conexão nova exigida pela versão 7:
-const connectionString = process.env.DATABASE_URL;
-const pool = new pg.Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+import prisma from '../client.js';
 
 class UserController {
     // O método 'create' vai guardar toda a lógica de criar o usuário
