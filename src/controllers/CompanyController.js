@@ -10,6 +10,15 @@ class CompanyController {
             return res.status(400).json({ error: 'Preencha todos os campos do dono e da empresa' });
         }
 
+        // Criando o SLUG automaticamente
+        // Tiramos espaços, colocamos em minúsculo e trocamos espaços por traço
+        const slug = companyName
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '') // Remove acentos e símbolos
+            .replace(/[\s_-]+/g, '-') // Troca espaços por traço
+            .replace(/^-+|-+$/g, ''); // Limpa traços no início ou fim
+
         try {
             const userExists = await prisma.user.findUnique({ where: { email } });
             if (userExists) {
@@ -22,6 +31,7 @@ class CompanyController {
             const company = await prisma.company.create({
                 data: {
                     name: companyName,
+                    slug: slug,
                     users: {
                         create: {
                             name: userName,
