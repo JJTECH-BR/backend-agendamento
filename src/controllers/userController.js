@@ -4,7 +4,8 @@ import prisma from '../client.js';
 class UserController {
     // O método 'create' vai guardar toda a lógica de criar o usuário
     async create(req, res) {
-        const { name, email, password, confirmPassword, companyId } = req.body;
+        // 1. ADICIONAMOS O 'role' AQUI NA LISTA DE RECEBIMENTO
+        const { name, email, password, confirmPassword, companyId, role } = req.body;
 
         if (password !== confirmPassword) {
             return res.status(400).json({ error: 'As senhas não coincidem' });
@@ -25,15 +26,21 @@ class UserController {
                 name: name,
                 email: email,
                 password: hashedPassword,
-                companyId: companyId // Atribuímos o ID da empresa diretamente aqui
+                companyId: companyId, // Atribuímos o ID da empresa diretamente aqui
             }
         });
 
         return res.status(201).json(user);
     }
+
     async index(req, res) {
         try {
             const users = await prisma.user.findMany({
+                // O 'where' é o nosso filtro. 
+                // Ele diz: "Prisma, traga os usuários ONDE o companyId seja igual ao ID que está no Token"
+                where: {
+                    companyId: req.userCompanyId,
+                },
                 include: {
                     company: true,
                 }
@@ -45,5 +52,4 @@ class UserController {
     }
 }
 
-// Exportamos a classe instanciada para as rotas poderem usar
 export default new UserController();
