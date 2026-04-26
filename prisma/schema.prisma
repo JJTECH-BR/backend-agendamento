@@ -21,6 +21,7 @@ enum Role {
 model Company {
   id   String @id @default(uuid())
   name String
+  slug String @unique
 
   users        User[]
   services     Service[]

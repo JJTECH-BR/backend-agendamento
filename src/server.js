@@ -1,12 +1,15 @@
 import 'dotenv/config';
 import express from 'express';
-import routes from './routes.js'; // Importamos o mapa de rotas que criamos
+import cors from 'cors'; // 1. Importamos o CORS (o porteiro que libera a entrada)
+import routes from './routes.js';
 
 const app = express();
 
+// 2. Liberamos a API para ser acessada por outros endereços (como o front-end da Juliana)
+app.use(cors());
+
 app.use(express.json());
 
-// Avisamos ao Express para usar o nosso mapa de rotas
 app.use(routes);
 
 app.listen(3333, () => {

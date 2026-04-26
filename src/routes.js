@@ -1,27 +1,25 @@
-import { Router } from 'express'; // Puxamos só a ferramenta de rotas do Express
-import UserController from './controllers/userController.js'; // Importamos o nosso especialista
+import { Router } from 'express';
+import UserController from './controllers/userController.js';
 import CompanyController from './controllers/CompanyController.js';
-
-
-
+import SessionController from './controllers/sessionController.js';
+import authMiddleware from './middlewares/auth.js';
 const routes = new Router();
 
-// A nossa rota de teste de saúde do servidor
+// Rota de teste
 routes.get('/', (req, res) => {
     return res.json({ message: 'Servidor rodando perfeitamente!' });
 });
 
-// A ROTA DE CADASTRO: Olha como fica limpa! 
-// Quando bater um POST no /users, ele chama a função 'create' do UserController
+// --- ÁREA PÚBLICA ---
+routes.post('/sessions', SessionController.create);
 routes.post('/users', UserController.create);
-
-routes.get('/users', UserController.index);
-
-// Rota para criar a empresa (Onde você vai gerar o ID oficial)
 routes.post('/companies', CompanyController.store);
 
-// Rota para listar as empresas (Para você consultar o ID depois)
+// --- FILTRO DE SEGURANÇA ---
+routes.use(authMiddleware);
+
+// --- ROTAS PROTEGIDAS ---
+routes.get('/users', UserController.index);
 routes.get('/companies', CompanyController.index);
 
-// Exportamos o mapa de rotas
 export default routes;
