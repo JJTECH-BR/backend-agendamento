@@ -33,7 +33,10 @@ describe('Teste de Integração da rota POST /users', () => {
         // Como o banco está totalmente vazio (o faxineiro limpou), a gente precisa 
         // criar uma Empresa real lá dentro primeiro, senão o Usuário não tem a quem se vincular!
         const empresa = await prisma.company.create({
-            data: { name: 'Empresa Teste de Integração' }
+            data: {
+                name: 'Empresa Teste de Integração',
+                slug: 'empresa-teste-integracao'
+            }
         });
 
         // --- FASE 2: A AÇÃO (Act) ---
