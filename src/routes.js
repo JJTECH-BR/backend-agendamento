@@ -11,7 +11,7 @@ routes.get('/', (req, res) => {
 });
 
 // --- ÁREA PÚBLICA ---
-routes.post('/sessions', SessionController.create);
+routes.post('/sessions', SessionController.store);
 routes.post('/users', UserController.create);
 routes.post('/companies', CompanyController.store);
 
