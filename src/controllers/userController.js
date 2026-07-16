@@ -4,33 +4,49 @@ import prisma from '../client.js';
 class UserController {
     // O método 'create' vai guardar toda a lógica de criar o usuário
     async create(req, res) {
-        // 1. ADICIONAMOS O 'role' AQUI NA LISTA DE RECEBIMENTO
-        const { name, email, password, confirmPassword, companyId, role } = req.body;
+        try {
+            const { name, email, password, confirmPassword, companyId, role } = req.body;
 
-        if (password !== confirmPassword) {
-            return res.status(400).json({ error: 'As senhas não coincidem' });
-        }
-
-        const userExists = await prisma.user.findUnique({
-            where: { email: email },
-        });
-
-        if (userExists) {
-            return res.status(400).json({ error: 'Usuário já existe' });
-        }
-
-        const hashedPassword = await bcryptjs.hash(password, 8);
-
-        const user = await prisma.user.create({
-            data: {
-                name: name,
-                email: email,
-                password: hashedPassword,
-                companyId: companyId, // Atribuímos o ID da empresa diretamente aqui
+            if (!name || !email || !password || !confirmPassword) {
+                return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
             }
-        });
 
-        return res.status(201).json(user);
+            if (password !== confirmPassword) {
+                return res.status(400).json({ error: 'As senhas não coincidem' });
+            }
+
+            const company = await prisma.company.findUnique({
+                where: { slug: companyId },
+            });
+
+            if (!company) {
+                return res.status(400).json({ error: 'Empresa não encontrada' });
+            }
+
+            const userExists = await prisma.user.findUnique({
+                where: { email: email },
+            });
+
+            if (userExists) {
+                return res.status(400).json({ error: 'Usuário já existe' });
+            }
+
+            const hashedPassword = await bcryptjs.hash(password, 8);
+
+            const user = await prisma.user.create({
+                data: {
+                    name: name,
+                    email: email,
+                    password: hashedPassword,
+                    companyId: company.id,
+                }
+            });
+
+            return res.status(201).json(user);
+        } catch (error) {
+            console.error('Erro ao criar usuário:', error);
+            return res.status(500).json({ error: 'Erro interno ao criar conta' });
+        }
     }
 
     async index(req, res) {

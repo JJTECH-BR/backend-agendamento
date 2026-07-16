@@ -12,10 +12,10 @@ export default async (req, res, next) => {
 
     try {
         // Valida o crachá
-        const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+        const decoded = await promisify(jwt.verify)(token, process.env.APP_SECRET);
 
         // Salva os dados para os próximos arquivos usarem
-        req.userId = decoded.userId;
+        req.userId = decoded.id;
         req.userRole = decoded.role;
         req.userCompanyId = decoded.companyId;
 
