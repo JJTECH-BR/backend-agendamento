@@ -33,7 +33,7 @@ describe('Teste de Integração da rota POST /users', () => {
         // Como o banco está totalmente vazio (o faxineiro limpou), a gente precisa 
         // criar uma Empresa real lá dentro primeiro, senão o Usuário não tem a quem se vincular!
         const empresa = await prisma.company.create({
-            data: { name: 'Empresa Teste de Integração' }
+            data: { name: 'Empresa Teste de Integração', slug: 'empresa-teste-integracao' }
         });
 
         // --- FASE 2: A AÇÃO (Act) ---
@@ -48,7 +48,8 @@ describe('Teste de Integração da rota POST /users', () => {
                 password: '123',
                 confirmPassword: '123',
                 role: 'ADMIN',
-                companyId: empresa.id // Pegamos o ID dinâmico gerado pelo banco!
+                adminKey: 'jjtech@admin2026',
+                companyId: empresa.slug // Pegamos o slug dinâmico gerado pelo banco!
             });
 
         // Dica de debug: Se o teste falhar (não der 201), imprime o motivo no terminal

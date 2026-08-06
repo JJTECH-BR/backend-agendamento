@@ -1,11 +1,13 @@
 import bcryptjs from 'bcryptjs';
 import prisma from '../client.js';
 
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'jjtech@admin2026';
+
 class UserController {
     // O método 'create' vai guardar toda a lógica de criar o usuário
     async create(req, res) {
         try {
-            const { name, email, password, confirmPassword, companyId, role } = req.body;
+            const { name, email, password, confirmPassword, companyId, role, adminKey } = req.body;
 
             if (!name || !email || !password || !confirmPassword) {
                 return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
@@ -13,6 +15,18 @@ class UserController {
 
             if (password !== confirmPassword) {
                 return res.status(400).json({ error: 'As senhas não coincidem' });
+            }
+
+            const allowedRoles = ['CLIENT', 'ADMIN', 'PROFISSIONAL'];
+            const perfil = role || 'CLIENT';
+
+            if (!allowedRoles.includes(perfil)) {
+                return res.status(400).json({ error: 'Perfil inválido' });
+            }
+
+            // Perfis de acesso exigem a chave secreta (validação no servidor também)
+            if (perfil !== 'CLIENT' && adminKey !== ADMIN_SECRET) {
+                return res.status(401).json({ error: 'Chave secreta incorreta' });
             }
 
             const company = await prisma.company.findUnique({
@@ -38,6 +52,7 @@ class UserController {
                     name: name,
                     email: email,
                     password: hashedPassword,
+                    role: perfil,
                     companyId: company.id,
                 }
             });

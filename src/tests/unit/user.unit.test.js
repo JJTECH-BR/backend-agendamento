@@ -37,7 +37,13 @@ describe('Teste Unitário da rota POST /users', () => {
         prismaMock.user.findFirst.mockResolvedValue(null);
         prismaMock.user.findUnique.mockResolvedValue(null);
 
-        // B) Ensinamos o dublê a devolver um usuário falso quando o sistema mandar criar
+        // B) Ensinamos o dublê a devolver a empresa encontrada pelo slug
+        prismaMock.company.findUnique.mockResolvedValue({
+            id: 'uuid-empresa-falsa-123',
+            slug: 'empresa-falsa'
+        });
+
+        // C) Ensinamos o dublê a devolver um usuário falso quando o sistema mandar criar
         prismaMock.user.create.mockResolvedValue({
             id: 'id-falso-123',
             name: 'Johny Mock'
@@ -54,7 +60,8 @@ describe('Teste Unitário da rota POST /users', () => {
                 password: '123',
                 confirmPassword: '123',
                 role: 'ADMIN',
-                companyId: 'uuid-empresa-falsa-123'
+                adminKey: 'jjtech@admin2026',
+                companyId: 'empresa-falsa'
             });
 
         // Dica de ouro para debugar: se não der status 201 (Criado com Sucesso), mostra o erro no terminal
