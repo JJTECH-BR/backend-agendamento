@@ -3,6 +3,8 @@ import UserController from './controllers/userController.js';
 import CompanyController from './controllers/CompanyController.js';
 import SessionController from './controllers/sessionController.js';
 import authMiddleware from './middlewares/auth.js';
+import validate from './middlewares/validate.js';
+import { createUserSchema } from './schemas/userSchema.js';
 const routes = new Router();
 
 // Rota de teste
@@ -12,7 +14,7 @@ routes.get('/', (req, res) => {
 
 // --- ÁREA PÚBLICA ---
 routes.post('/sessions', SessionController.store);
-routes.post('/users', UserController.create);
+routes.post('/users', validate(createUserSchema), UserController.create);
 routes.post('/companies', CompanyController.store);
 
 // --- FILTRO DE SEGURANÇA ---

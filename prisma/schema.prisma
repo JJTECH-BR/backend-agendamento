@@ -9,11 +9,11 @@ datasource db {
 enum Role {
   CLIENT
   ADMIN
-  PROFISSIONAL // Corrigido com dois 'S'
+  PROFISSIONAL
 }
 
 model Company {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   name      String
   slug      String   @unique
   createdAt DateTime @default(now())
@@ -27,7 +27,7 @@ model Company {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   name      String
   email     String   @unique
   password  String
@@ -36,7 +36,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   company   Company @relation(fields: [companyId], references: [id])
-  companyId String
+  companyId String  @db.Uuid
 
   // O Prisma exige dar um "nome" à relação quando ligamos a mesma tabela duas vezes
   clientAppointments       Appointment[] @relation("ClientAppointments")
@@ -46,40 +46,41 @@ model User {
 }
 
 model Service {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   name        String
-  description String
+  description String?
   price       Float
   duration    Int // Opcional: tempo em minutos (útil para bloquear a agenda)
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   company      Company       @relation(fields: [companyId], references: [id])
-  companyId    String
+  companyId    String        @db.Uuid
   appointments Appointment[]
 
   @@map("services")
 }
 
 model Appointment {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   date      DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // 1. Quem vai receber o serviço? (O Cliente)
   client   User   @relation("ClientAppointments", fields: [clientId], references: [id])
-  clientId String
+  clientId String @db.Uuid
 
   // 2. Quem vai fazer o serviço? (O Profissional)
   professional   User   @relation("ProfessionalAppointments", fields: [professionalId], references: [id])
-  professionalId String
+  professionalId String @db.Uuid
 
   service   Service @relation(fields: [serviceId], references: [id])
-  serviceId String
+  serviceId String  @db.Uuid
 
   company   Company @relation(fields: [companyId], references: [id])
-  companyId String
+  companyId String  @db.Uuid
 
   @@map("appointments")
 }
