@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals'; // Traz o motor do Jest para podermos controlar o teste
 import request from 'supertest';      // Ferramenta que simula o 'Postman' ou 'Insomnia' para bater nas rotas
 import express from 'express';        // O criador do nosso servidor web
+import { randomBytes } from 'crypto';
 import { mockDeep } from 'jest-mock-extended'; // Ferramenta para criar o Dublê (Mock) do Prisma
 
 // 1. O DUBLÊ (Mock): Criamos um "ator" que vai fingir ser o banco de dados.
@@ -22,6 +23,7 @@ app.use(express.json()); // Ensina o servidor a entender dados no formato JSON
 app.use(routes);         // Conecta as rotas do sistema ao nosso servidor fantasma
 
 describe('Teste Unitário da rota POST /users', () => {
+    const testPassword = randomBytes(16).toString('hex');
 
     // O FAXINEIRO: Limpa a memória do dublê antes de cada teste começar.
     // Assim, um teste antigo não atrapalha o próximo.
@@ -57,11 +59,10 @@ describe('Teste Unitário da rota POST /users', () => {
             .send({
                 name: 'Johny Mock',
                 email: 'teste@mock.com',
-                password: '123',
-                confirmPassword: '123',
+                password: testPassword,
+                confirmPassword: testPassword,
+                companyId: 'empresa-falsa',
                 role: 'ADMIN',
-                adminKey: 'jjtech@admin2026',
-                companyId: 'empresa-falsa'
             });
 
         // Dica de ouro para debugar: se não der status 201 (Criado com Sucesso), mostra o erro no terminal
@@ -76,5 +77,24 @@ describe('Teste Unitário da rota POST /users', () => {
 
         // Verificamos se o dublê (Prisma) foi chamado exatamente 1 vez para criar o usuário
         expect(prismaMock.user.create).toHaveBeenCalledTimes(1);
+        expect(prismaMock.user.create.mock.calls[0][0].data.role).toBe('CLIENT');
     })
-})
+
+    it('impede o perfil PROFISSIONAL de autenticar', async () => {
+        prismaMock.user.findUnique.mockResolvedValue({
+            id: 'professional-id',
+            email: 'professional@example.com',
+            password: 'unused',
+            role: 'PROFISSIONAL',
+            active: true,
+            companyId: 'company-id',
+        });
+
+        const response = await request(app)
+            .post('/sessions')
+            .send({ email: 'professional@example.com', password: testPassword });
+
+        expect(response.status).toBe(403);
+        expect(response.body).not.toHaveProperty('token');
+    })
+});

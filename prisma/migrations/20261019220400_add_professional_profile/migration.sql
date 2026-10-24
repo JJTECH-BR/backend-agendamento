@@ -1,0 +1,4 @@
+ALTER TABLE "users"
+ADD COLUMN "specialty" TEXT,
+ADD COLUMN "biography" TEXT,
+ADD COLUMN "active" BOOLEAN NOT NULL DEFAULT true;

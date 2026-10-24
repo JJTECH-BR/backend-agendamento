@@ -6,56 +6,58 @@ class SessionController {
     async store(req, res) {
         const { email, password, companyId } = req.body;
 
-        // 1. Verifica se o usuário existe no banco
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (!user) {
-            return res.status(401).json({ error: 'Usuário não encontrado.' });
-        }
-
-        // 1.5 Se veio um slug de empresa na URL, confirma que o usuário pertence a ela
-        if (companyId) {
-            const company = await prisma.company.findUnique({
-                where: { slug: companyId }
+        try {
+            const user = await prisma.user.findUnique({
+                where: { email },
             });
 
-            if (!company) {
-                return res.status(400).json({ error: 'Empresa não encontrada' });
+            if (!user || !user.password) {
+                return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
             }
 
-            if (user.companyId !== company.id) {
-                return res.status(401).json({ error: 'Esta conta não pertence a esta empresa' });
+            if (user.role === 'PROFISSIONAL') {
+                return res.status(403).json({ error: 'Profissionais não possuem acesso ao sistema.' });
             }
+
+            if (!user.active) {
+                return res.status(401).json({ error: 'Esta conta está inativa.' });
+            }
+
+            if (companyId) {
+                const company = await prisma.company.findUnique({
+                    where: { slug: companyId },
+                    select: { id: true },
+                });
+
+                if (!company) {
+                    return res.status(400).json({ error: 'Empresa não encontrada' });
+                }
+
+                if (user.companyId !== company.id) {
+                    return res.status(401).json({ error: 'Esta conta não pertence a esta empresa' });
+                }
+            }
+
+            const checkPassword = await bcryptjs.compare(password, user.password);
+            if (!checkPassword) {
+                return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+            }
+
+            const { id, name, role } = user;
+            const token = jwt.sign(
+                { id, companyId: user.companyId, role },
+                process.env.APP_SECRET,
+                { expiresIn: '7d' },
+            );
+
+            return res.json({
+                user: { id, name, email: user.email, role },
+                token,
+            });
+        } catch (error) {
+            console.error('Erro ao autenticar usuário:', error);
+            return res.status(500).json({ error: 'Erro ao autenticar usuário' });
         }
-
-        // 2. Compara a senha digitada com a senha criptografada do banco
-        const checkPassword = await bcryptjs.compare(password, user.password);
-
-        if (!checkPassword) {
-            return res.status(401).json({ error: 'Senha incorreta.' });
-        }
-
-        // 3. Gera o Token de Acesso usando a chave do .env
-        const { id, name, role } = user;
-        const token = jwt.sign(
-            { id, companyId: user.companyId, role },
-            process.env.APP_SECRET,
-            { expiresIn: '7d' } // O login dura 7 dias
-        );
-
-        // 4. Retorna os dados do usuário (sem a senha) e o Token
-        return res.json({
-            user: {
-                id,
-                name,
-                email,
-                companyId: user.companyId,
-                role
-            },
-            token
-        });
     }
 }
 

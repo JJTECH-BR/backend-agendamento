@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/unit",
-    "test:integration": "dotenv -e .env.test -- npx prisma db push --accept-data-loss && dotenv -e .env.test -- node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/integration --forceExit",
+    "test:integration": "dotenv -e .env -- node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/integration",
     "test": "npm run test:unit && npm run test:integration"
   },
   "keywords": [],

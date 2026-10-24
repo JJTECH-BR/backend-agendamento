@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-const roles = ['CLIENT', 'ADMIN', 'PROFISSIONAL'];
-
 export const createUserSchema = z.object({
     name: z
         .string()
@@ -12,9 +10,7 @@ export const createUserSchema = z.object({
         error: 'E-mail inválido',
     }),
 
-    password: z
-        .string()
-        .min(6, 'A senha deve ter pelo menos 6 caracteres'),
+    password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
 
     confirmPassword: z
         .string()
@@ -25,14 +21,13 @@ export const createUserSchema = z.object({
         .trim()
         .min(1, 'Empresa é obrigatória'),
 
-    role: z
-        .enum(roles)
-        .default('CLIENT'),
-
-    adminKey: z
-        .string()
-        .optional(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',
     path: ['confirmPassword'],
+});
+
+export const createSessionSchema = z.object({
+    email: z.email(),
+    password: z.string().min(1),
+    companyId: z.string().trim().min(1).optional(),
 });

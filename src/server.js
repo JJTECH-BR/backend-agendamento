@@ -8,7 +8,7 @@ const app = express();
 // 2. Liberamos a API para ser acessada por outros endereços (como o front-end da Juliana)
 app.use(cors());
 
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 
 app.use(routes);
 

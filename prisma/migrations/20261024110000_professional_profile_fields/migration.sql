@@ -1,0 +1,3 @@
+ALTER TABLE "users"
+ADD COLUMN IF NOT EXISTS "profilePhoto" TEXT,
+ADD COLUMN IF NOT EXISTS "instagram" TEXT;

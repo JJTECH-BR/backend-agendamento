@@ -12,37 +12,80 @@ enum Role {
   PROFISSIONAL
 }
 
-model Company {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
 
-  users        User[]
-  services     Service[]
-  appointments Appointment[]
+model Company {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String   @unique
+  description     String?
+  heroTitle       String?
+  heroDescription String?
+  phone           String?
+  address         String?
+  instagram       String?
+  instagramUrl    String?
+  openingTime     String   @default("09:00")
+  closingTime     String   @default("17:00")
+  closedDates     String[] @default([])
+  pageContent     Json?    @db.JsonB
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users             User[]
+  services          Service[]
+  appointments      Appointment[]
+  chatConversations ChatConversation[]
 
   @@map("companies")
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(CLIENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String?  @unique
+  password     String?
+  role         Role     @default(CLIENT)
+  specialty    String?
+  biography    String?
+  profilePhoto String?
+  instagram    String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   company   Company @relation(fields: [companyId], references: [id])
   companyId String  @db.Uuid
 
   // O Prisma exige dar um "nome" à relação quando ligamos a mesma tabela duas vezes
-  clientAppointments       Appointment[] @relation("ClientAppointments")
-  professionalAppointments Appointment[] @relation("ProfessionalAppointments")
+  clientAppointments       Appointment[]          @relation("ClientAppointments")
+  professionalAppointments Appointment[]          @relation("ProfessionalAppointments")
+  providedServices         Service[]              @relation("ProfessionalServices")
+  chatConversations        ChatConversation[]
+  schedules                ProfessionalSchedule[]
 
   @@map("users")
+}
+
+model ProfessionalSchedule {
+  id             String   @id @default(uuid()) @db.Uuid
+  professionalId String   @db.Uuid
+  dayOfWeek      Int
+  startTime      String
+  endTime        String
+  available      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  professional User @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, dayOfWeek])
+  @@map("professional_schedules")
 }
 
 model Service {
@@ -55,16 +98,21 @@ model Service {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  company      Company       @relation(fields: [companyId], references: [id])
-  companyId    String        @db.Uuid
-  appointments Appointment[]
+  company        Company       @relation(fields: [companyId], references: [id])
+  companyId      String        @db.Uuid
+  professional   User?         @relation("ProfessionalServices", fields: [professionalId], references: [id], onDelete: SetNull)
+  professionalId String?       @db.Uuid
+  appointments   Appointment[]
 
+  @@index([professionalId])
   @@map("services")
 }
 
 model Appointment {
   id        String   @id @default(uuid()) @db.Uuid
   date      DateTime
+  price     Float    @default(0)
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -82,5 +130,41 @@ model Appointment {
   company   Company @relation(fields: [companyId], references: [id])
   companyId String  @db.Uuid
 
+  @@index([companyId, date])
+  @@index([status])
+  @@index([companyId, professionalId, date])
+  @@index([companyId, clientId, date])
   @@map("appointments")
+}
+
+model ChatConversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String  @db.Uuid
+  user      User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId    String? @db.Uuid
+
+  messages ChatMessage[]
+
+  @@index([companyId, updatedAt])
+  @@index([userId, updatedAt])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String           @id @default(uuid()) @db.Uuid
+  role           String
+  content        String
+  metadata       Json?
+  createdAt      DateTime         @default(now())
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String           @db.Uuid
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
 }
